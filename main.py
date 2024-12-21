@@ -1,5 +1,7 @@
 import logging
 import requests
+import re
+import json
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -32,8 +34,35 @@ class JobPortal():
         log.info("status_code: " + str(self.response.status_code))
 
     def parse(self):
-        """ parse the information """
-        pass
+        """ parse the information and save as LIST of DICTIONARY """
+        # this is the json I found from the webiste
+        snippet_pattern = r"(\{\"jobDetail\":\s*\{.*?\}.*?\})"
+        result = re.findall(snippet_pattern, self.response.text, re.DOTALL)
+
+        # prepare an empty LIST of jobs
+        job_listing = []
+        # now extract the job info into DICT
+        for item in result:
+            _json = json.loads(item)
+            _detail = _json["jobDetail"]
+
+            ref = {}
+            ref["job_id"] = _detail["jobId"]
+            ref["job_title"] = _detail["jobTitle"]
+            ref["job_ad_date"] = _detail["displayDate"]
+            ref["job_ad_expiry_date"] = _detail["expiryDate"]
+            ref["job_location"] = _detail["displayLocationName"]
+            ref["job_county_location"] = _detail["countyLocation"]
+            ref["salary_from"] = _detail["salaryFrom"]
+            ref["salary_to"] = _detail["salaryTo"]
+            ref["remote_working_option"] = _detail["remoteWorkingOption"]
+            ref["co_name"] = _json["profileName"]
+            ref["job_url"] = "base_url" + "/jobs" + _json["url"]
+
+            job_listing.append(ref)
+
+        # save the list in object
+        self.job_listing = job_listing
 
     def write_csv(self):
         """ write data into csv """
@@ -48,9 +77,11 @@ def main():
     keywords = "Python"
     location = "Blackpool"
     p.fetch(keywords, location)
-    print(p.response)
-    pass
+
+    # parse the content
     p.parse()
+    print(p.job_listing)
+    pass
 
     # write the output into csv
     p.write_csv()

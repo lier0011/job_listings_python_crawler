@@ -1,9 +1,9 @@
 # job_listings_python_crawler
 
 A coursera project to showcase how to scrape job listings from a popular job search platform.
-At first, I thought I want to scrape the data from de.indeed.com. I did some research, analyisis
+At first, I thought I want to scrape the data from de.indeed.com. I did some research, analysis
 and simple tests using curl on cli, just to check if I can access the website easily.
-Hence I decided to access other alternative, reed.co.uk. 
+Unfortunately, I always got HTTP 403 forbidden. Hence I decided to access other alternative, reed.co.uk. 
 
 Relevant information are going to be extracted, such as: job titles, companies, locations, job descriptions, etc.
 
