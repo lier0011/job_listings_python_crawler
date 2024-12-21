@@ -1,6 +1,5 @@
 # job_listings_python_crawler
 
-# de_indeed_crawler_python
 A coursera project to showcase how to scrape job listings from a popular job search platform,
 in my case it is de.indeed.com. It's about scraping job listings which are available in Germany. 
 Relevant information are going to be extracted, such as: job titles, companies, locations, job descriptions, etc.
