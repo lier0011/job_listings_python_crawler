@@ -14,6 +14,7 @@ class JobPortal():
         """ constructor """
         self.base_url = "https://www.reed.co.uk"
         self.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'}
+        self.path_data = os.path.join(os.getcwd(), "data")
         log.info("initialise job portal: " + self.base_url)
 
     def fetch(self, key, loc):
@@ -35,6 +36,7 @@ class JobPortal():
         # response 
         response = requests.get(self.url, headers=self.headers)
         log.info("status_code: " + str(response.status_code))
+        #self.write("test.html", response.content)
         return response
 
     def parse(self, response):
@@ -60,12 +62,20 @@ class JobPortal():
             ref["salary_from"] = _detail["salaryFrom"]
             ref["salary_to"] = _detail["salaryTo"]
             ref["remote_working_option"] = _detail["remoteWorkingOption"]
-            ref["co_name"] = _json["profileName"]
+
+            # profileName vs ouName
+            if _json["profileName"] is not None:
+                ref["co_name"] = _json["profileName"]
+            elif _detail["ouName"] is not None:
+                ref["co_name"] = _detail["ouName"]
 
             # eliminate double /
             _job_url = self.base_url + "/jobs/" + _json["url"]
             ref["job_url"] = re.sub(r"\/{1,}", "/", _job_url, re.DOTALL)
 
+            # just debug
+            #if(ref["job_id"] == 54203973):
+            #    self.write("test.json", json.dumps(item).encode("utf8"))
             job_listing.append(ref)
 
         # return the list
@@ -81,10 +91,18 @@ class JobPortal():
 
         return norm_date
 
+    def write(self, filename, content):
+        """ function to write content to a file """
+        target_file = os.path.join(self.path_data, filename)
+        log.info("target file path: " + target_file)
+
+        with open(target_file, "wb") as file:
+            file.write(content)
+
     def write_csv(self, filename, job_listing):
         """ function to write csv """
         # define the filename of target csv
-        target_file = os.path.join(os.getcwd(), "data", filename)
+        target_file = os.path.join(self.path_data, filename)
         # eliminate whitespaces on filename
         target_file = re.sub(r"\s{1,}", "_", target_file, re.DOTALL)
         log.info("target file path: " + target_file)
