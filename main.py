@@ -2,6 +2,8 @@ import logging
 import requests
 import re
 import json
+import os
+import csv
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -49,24 +51,49 @@ class JobPortal():
             ref = {}
             ref["job_id"] = _detail["jobId"]
             ref["job_title"] = _detail["jobTitle"]
-            ref["job_ad_date"] = _detail["displayDate"]
-            ref["job_ad_expiry_date"] = _detail["expiryDate"]
+            ref["job_ad_date"] = self.normalize_date(_detail["displayDate"])
+            ref["job_ad_expiry_date"] = self.normalize_date(_detail["expiryDate"])
             ref["job_location"] = _detail["displayLocationName"]
             ref["job_county_location"] = _detail["countyLocation"]
             ref["salary_from"] = _detail["salaryFrom"]
             ref["salary_to"] = _detail["salaryTo"]
             ref["remote_working_option"] = _detail["remoteWorkingOption"]
             ref["co_name"] = _json["profileName"]
-            ref["job_url"] = "base_url" + "/jobs" + _json["url"]
+
+            # eliminate double /
+            _job_url = self.base_url + "/jobs/" + _json["url"]
+            ref["job_url"] = re.sub(r"\/{1,}", "/", _job_url, re.DOTALL)
 
             job_listing.append(ref)
 
         # save the list in object
         self.job_listing = job_listing
 
-    def write_csv(self):
-        """ write data into csv """
-        pass
+    def normalize_date(self, date_text):
+        # normalise the date
+        norm_date = ""
+        regex_date = r"\d{4}\-\d{1,2}\-\d{1,2}"
+        res_date = re.search(regex_date, date_text)
+        if res_date is not None:
+            norm_date = res_date.group(0)
+
+        return norm_date
+
+    def write_csv(self, filename):
+        """ function to write csv """
+        # define the filename of target csv
+        target_file = os.path.join(os.getcwd(), "data", filename)
+        log.info("target file path: " + target_file)
+
+        with open(target_file, "w") as file:
+            # first, get the keys of the DICT element for the csv header
+            fieldnames = self.job_listing[0].keys()
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writeheader()
+
+            # now generate the csv rows
+            for idx in range(0, len(self.job_listing)):
+                writer.writerow(self.job_listing[idx])
 
 def main():
     # initialise job portal
@@ -80,11 +107,10 @@ def main():
 
     # parse the content
     p.parse()
-    print(p.job_listing)
-    pass
 
     # write the output into csv
-    p.write_csv()
+    filename = "_".join(["jobs", keywords.lower(), location.lower(), "list.csv"])
+    p.write_csv(filename)
 
 if __name__ == "__main__":
     main()
