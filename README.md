@@ -1,7 +1,10 @@
 # job_listings_python_crawler
 
-A coursera project to showcase how to scrape job listings from a popular job search platform,
-in my case it is de.indeed.com. It's about scraping job listings which are available in Germany. 
+A coursera project to showcase how to scrape job listings from a popular job search platform.
+At first, I thought I want to scrape the data from de.indeed.com. I did some research, analyisis
+and simple tests using curl on cli, just to check if I can access the website easily.
+Hence I decided to access other alternative, reed.co.uk. 
+
 Relevant information are going to be extracted, such as: job titles, companies, locations, job descriptions, etc.
 
 Link to coursera Project: https://www.coursera.org/projects/scrape-job-postings-data-analyst
