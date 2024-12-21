@@ -32,15 +32,16 @@ class JobPortal():
         self.url = self.base_url + query_url
         log.info("fetching url " + self.url)
 
-        # save response into object
-        self.response = requests.get(self.url, headers=self.headers)
-        log.info("status_code: " + str(self.response.status_code))
+        # response 
+        response = requests.get(self.url, headers=self.headers)
+        log.info("status_code: " + str(response.status_code))
+        return response
 
-    def parse(self):
+    def parse(self, response):
         """ parse the information and save as LIST of DICTIONARY """
         # this is the json I found from the webiste
         snippet_pattern = r"(\{\"jobDetail\":\s*\{.*?\}.*?\})"
-        result = re.findall(snippet_pattern, self.response.text, re.DOTALL)
+        result = re.findall(snippet_pattern, response.text, re.DOTALL)
 
         # prepare an empty LIST of jobs
         job_listing = []
@@ -67,8 +68,8 @@ class JobPortal():
 
             job_listing.append(ref)
 
-        # save the list in object
-        self.job_listing = job_listing
+        # return the list
+        return job_listing
 
     def normalize_date(self, date_text):
         # normalise the date
@@ -80,7 +81,7 @@ class JobPortal():
 
         return norm_date
 
-    def write_csv(self, filename):
+    def write_csv(self, filename, job_listing):
         """ function to write csv """
         # define the filename of target csv
         target_file = os.path.join(os.getcwd(), "data", filename)
@@ -90,13 +91,13 @@ class JobPortal():
 
         with open(target_file, "w") as file:
             # first, get the keys of the DICT element for the csv header
-            fieldnames = self.job_listing[0].keys()
+            fieldnames = job_listing[0].keys()
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writeheader()
 
             # now generate the csv rows
-            for idx in range(0, len(self.job_listing)):
-                writer.writerow(self.job_listing[idx])
+            for idx in range(0, len(job_listing)):
+                writer.writerow(job_listing[idx])
 
 def main(keywords, location):
     # initialise job portal
@@ -104,14 +105,14 @@ def main(keywords, location):
     print(p)
 
     # scrape the job information
-    p.fetch(keywords, location)
+    resp = p.fetch(keywords, location)
 
     # parse the content
-    p.parse()
+    job_data = p.parse(resp)
 
     # write the output into csv
     filename = "_".join(["jobs", keywords.lower(), location.lower(), "list.csv"])
-    p.write_csv(filename)
+    p.write_csv(filename, job_data)
 
 if __name__ == "__main__":
     try:
