@@ -4,6 +4,7 @@ import re
 import json
 import os
 import csv
+import sys
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -83,6 +84,8 @@ class JobPortal():
         """ function to write csv """
         # define the filename of target csv
         target_file = os.path.join(os.getcwd(), "data", filename)
+        # eliminate whitespaces on filename
+        target_file = re.sub(r"\s{1,}", "_", target_file, re.DOTALL)
         log.info("target file path: " + target_file)
 
         with open(target_file, "w") as file:
@@ -95,14 +98,12 @@ class JobPortal():
             for idx in range(0, len(self.job_listing)):
                 writer.writerow(self.job_listing[idx])
 
-def main():
+def main(keywords, location):
     # initialise job portal
     p = JobPortal()
     print(p)
 
     # scrape the job information
-    keywords = "Python"
-    location = "Blackpool"
     p.fetch(keywords, location)
 
     # parse the content
@@ -113,4 +114,14 @@ def main():
     p.write_csv(filename)
 
 if __name__ == "__main__":
-    main()
+    try:
+        keywords = sys.argv[1]
+    except:
+        raise KeyError("keywords (1st param) missing")
+    
+    try:
+        location = sys.argv[2]
+    except:
+        raise KeyError("location (2nd param) missing")
+    
+    main(keywords, location)
